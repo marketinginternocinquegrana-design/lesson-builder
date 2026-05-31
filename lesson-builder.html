@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unlimited Accademy — Lesson Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#0d0d0f;
+  --bg2:#141417;
+  --bg3:#1c1c21;
+  --card:#1e1e24;
+  --card2:#252530;
+  --br:#2e2e3a;
+  --gold:#c9a84c;
+  --gold2:#e8c96a;
+  --gold3:#f5e098;
+  --silver:#9aa0b0;
+  --tx:#f0eff4;
+  --mu:#7a7d8e;
+  --dng:#e05454;
+  --suc:#3ecf8e;
+  --ac:#c9a84c;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:15px;min-height:100vh}
+
+/* ── NOISE TEXTURE ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+
+/* ── LAYOUT ── */
+.wrap{max-width:860px;margin:0 auto;padding:2rem 1rem 6rem;position:relative;z-index:1}
+
+/* ── HEADER ── */
+.hdr{text-align:center;margin-bottom:2.5rem;padding:2rem 0 1.5rem}
+.hdr-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,168,76,.3);border-radius:99px;padding:5px 14px;margin-bottom:1rem;background:rgba(201,168,76,.06)}
+.hdr h1{font-family:'Cinzel',serif;font-size:clamp(22px,4vw,32px);font-weight:900;letter-spacing:.02em;background:linear-gradient(135deg,var(--gold3) 0%,var(--gold) 50%,var(--silver) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+.hdr p{color:var(--mu);font-size:14px;margin-top:.5rem}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--br);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.25rem;transition:border-color .2s}
+.card:hover{border-color:rgba(201,168,76,.25)}
+.card-hd{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;padding-bottom:.875rem;border-bottom:1px solid var(--br)}
+.card-hd i{font-size:18px;color:var(--gold)}
+.card-hd h2{font-size:15px;font-weight:600;flex:1}
+.card-hd .badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.25)}
+
+/* ── FIELDS ── */
+label{display:block;font-size:12px;font-weight:600;color:var(--mu);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.4rem}
+input[type=text],input[type=number],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--br);border-radius:8px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;padding:.6rem .875rem;outline:none;transition:border-color .2s}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+select option{background:var(--bg3)}
+.field{margin-bottom:1rem}
+.field:last-child{margin-bottom:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:540px){.row2{grid-template-columns:1fr}}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.125rem;border-radius:8px;border:1px solid var(--br);background:var(--card2);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.07)}
+.btn.pr{background:linear-gradient(135deg,var(--gold),#b8952e);color:#000;border-color:transparent}
+.btn.pr:hover{opacity:.88;transform:translateY(-1px)}
+.btn.danger{border-color:rgba(224,84,84,.35);color:var(--dng)}
+.btn.danger:hover{background:rgba(224,84,84,.1);border-color:var(--dng)}
+.btn.sm{padding:.35rem .75rem;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.flex{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+.jb{justify-content:space-between}
+.wf{width:100%}
+.mt{margin-top:.875rem}
+.mt2{margin-top:1.5rem}
+.gap2{gap:.5rem}
+
+/* ── SECTION BLOCK ── */
+.section-block{background:var(--bg2);border:1px solid var(--br);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;position:relative;transition:border-color .2s}
+.section-block:hover{border-color:rgba(201,168,76,.2)}
+.section-num{position:absolute;top:-14px;left:1.25rem;background:linear-gradient(135deg,var(--gold),#b8952e);color:#000;font-family:'Cinzel',serif;font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px;letter-spacing:.06em}
+.section-inner{margin-top:.5rem}
+
+/* ── SLIDES ── */
+.slides-area{display:grid;gap:1rem}
+.slide-item{background:var(--card);border:1px solid var(--br);border-radius:10px;padding:1.125rem;position:relative}
+.slide-num{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem}
+.img-upload-area{border:2px dashed var(--br);border-radius:8px;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:.875rem;position:relative;overflow:hidden}
+.img-upload-area:hover{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.img-upload-area .placeholder{pointer-events:none}
+.img-upload-area .placeholder i{font-size:28px;color:var(--mu);margin-bottom:.5rem;display:block}
+.img-upload-area .placeholder p{font-size:12px;color:var(--mu)}
+.img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:6px;display:block}
+
+/* ── QUIZ SECTIONS ── */
+.quiz-block{margin-top:1.25rem}
+.quiz-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.875rem;display:flex;align-items:center;gap:7px}
+.quiz-title::before{content:'';display:inline-block;width:16px;height:2px;background:var(--gold);border-radius:2px}
+.q-item{background:var(--card2);border:1px solid var(--br);border-radius:9px;padding:1rem;margin-bottom:.75rem}
+.q-item:last-child{margin-bottom:0}
+.q-label{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
+.tf-row{display:flex;gap:.75rem;align-items:center;margin-top:.5rem}
+.tf-opt{display:flex;align-items:center;gap:.5rem;cursor:pointer;padding:.45rem .875rem;border-radius:7px;border:1px solid var(--br);background:var(--bg3);font-size:13px;font-weight:600;transition:all .18s;user-select:none}
+.tf-opt input{display:none}
+.tf-opt.selected-true{border-color:var(--suc);background:rgba(62,207,142,.1);color:var(--suc)}
+.tf-opt.selected-false{border-color:var(--dng);background:rgba(224,84,84,.1);color:var(--dng)}
+.mc-options{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+@media(max-width:500px){.mc-options{grid-template-columns:1fr}}
+.mc-opt-row{display:flex;align-items:center;gap:.5rem}
+.mc-opt-row input[type=text]{flex:1}
+.mc-opt-row .opt-radio{flex-shrink:0;width:22px;height:22px;border-radius:50%;border:2px solid var(--br);background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;font-size:10px;font-weight:700;color:transparent}
+.mc-opt-row .opt-radio.selected{border-color:var(--suc);background:rgba(62,207,142,.15);color:var(--suc)}
+.opt-letter{width:22px;height:22px;flex-shrink:0;border-radius:6px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)}
+
+/* ── SECTION TABS ── */
+.sec-tabs{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid var(--br);padding-bottom:.875rem}
+.sec-tab{background:none;border:1px solid transparent;border-radius:7px;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:.4rem .875rem;cursor:pointer;transition:all .18s}
+.sec-tab.active{border-color:rgba(201,168,76,.35);background:rgba(201,168,76,.08);color:var(--gold)}
+.sec-panel{display:none}
+.sec-panel.active{display:block}
+
+/* ── PROGRESS STEPS ── */
+.steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:2rem;flex-wrap:wrap}
+.step{display:flex;align-items:center;gap:.5rem;font-size:12px;font-weight:600;color:var(--mu)}
+.step.done .snum{background:linear-gradient(135deg,var(--gold),#b8952e);color:#000;border-color:transparent}
+.step.done{color:var(--gold)}
+.snum{width:26px;height:26px;border-radius:50%;border:2px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;transition:all .3s}
+.step-line{width:32px;height:2px;background:var(--br);margin:0 4px;border-radius:2px}
+
+/* ── EXPORT AREA ── */
+.export-box{background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(201,168,76,.03));border:1px solid rgba(201,168,76,.25);border-radius:14px;padding:1.75rem;text-align:center;margin-top:2rem}
+.export-box h3{font-family:'Cinzel',serif;font-size:18px;font-weight:700;color:var(--gold2);margin-bottom:.5rem}
+.export-box p{color:var(--mu);font-size:13px;margin-bottom:1.25rem}
+
+/* ── SUMMARY ── */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.sum-card{background:var(--bg3);border:1px solid var(--br);border-radius:9px;padding:.875rem;text-align:center}
+.sum-val{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:var(--gold2)}
+.sum-lbl{font-size:11px;color:var(--mu);margin-top:3px}
+
+/* ── ADD SECTION BTN ── */
+.add-section-btn{border:2px dashed rgba(201,168,76,.25);border-radius:14px;padding:1.25rem;text-align:center;cursor:pointer;transition:all .2s;width:100%;background:none;color:var(--mu);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.add-section-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.04)}
+.add-section-btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(120%);background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:.75rem 1.5rem;font-size:14px;font-weight:600;color:var(--gold);box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+
+/* ── PASSWORD OVERLAY ── */
+#pwd-overlay{position:fixed;inset:0;background:#0d0d0f;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
+.pwd-box{background:var(--card);border:1px solid rgba(201,168,76,.35);border-radius:18px;padding:2.5rem 2rem;width:100%;max-width:380px;text-align:center}
+.pwd-logo{font-family:'Cinzel',serif;font-size:20px;font-weight:900;background:linear-gradient(135deg,var(--gold3),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.25rem}
+.pwd-sub{font-size:12px;color:var(--mu);margin-bottom:1.75rem}
+.pwd-input{width:100%;background:var(--bg3);border:1px solid var(--br);border-radius:10px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:15px;padding:.7rem 1rem;outline:none;text-align:center;letter-spacing:.1em;transition:border-color .2s;margin-bottom:.875rem}
+.pwd-input:focus{border-color:var(--gold)}
+.pwd-err{font-size:12px;color:var(--dng);min-height:18px;margin-bottom:.75rem}
+.pwd-btn{width:100%;background:linear-gradient(135deg,var(--gold),#b8952e);color:#000;border:none;border-radius:10px;padding:.75rem;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .18s;margin-bottom:.875rem}
+.pwd-btn:hover{opacity:.85}
+.pwd-link{font-size:12px;color:var(--mu);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pwd-link:hover{color:var(--gold)}
+/* Modal cambio password */
+#chg-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;display:none;align-items:center;justify-content:center;padding:1rem}
+#chg-modal.open{display:flex}
+.chg-box{background:var(--card);border:1px solid rgba(201,168,76,.3);border-radius:14px;padding:2rem;width:100%;max-width:360px}
+.chg-box h3{font-size:15px;font-weight:700;color:var(--gold2);margin-bottom:1.25rem}
+.chg-box input{width:100%;background:var(--bg3);border:1px solid var(--br);border-radius:8px;color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;padding:.6rem .875rem;outline:none;margin-bottom:.75rem;transition:border-color .2s}
+.chg-box input:focus{border-color:var(--gold)}
+.chg-err{font-size:12px;color:var(--dng);min-height:16px;margin-bottom:.5rem}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD OVERLAY -->
+<div id="pwd-overlay">
+  <div class="pwd-box">
+    <div class="pwd-logo">UNLIMITED ACCADEMY</div>
+    <div class="pwd-sub">Lesson Builder — Accesso riservato</div>
+    <input class="pwd-input" type="password" id="pwd-field" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkPwd()">
+    <div class="pwd-err" id="pwd-err"></div>
+    <button class="pwd-btn" onclick="checkPwd()">🔓 Accedi</button>
+    <span class="pwd-link" onclick="recoverPwd()">Password dimenticata?</span>
+  </div>
+</div>
+
+<!-- MODAL CAMBIO PASSWORD -->
+<div id="chg-modal">
+  <div class="chg-box">
+    <h3>🔑 Cambia password</h3>
+    <label style="font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.4rem">Password attuale</label>
+    <input type="password" id="chg-old" placeholder="Password attuale">
+    <label style="font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.4rem">Nuova password (min. 6 caratteri)</label>
+    <input type="password" id="chg-new" placeholder="Nuova password">
+    <label style="font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:.4rem">Conferma nuova password</label>
+    <input type="password" id="chg-new2" placeholder="Ripeti nuova password">
+    <div class="chg-err" id="chg-err"></div>
+    <div style="display:flex;gap:.75rem;margin-top:.25rem">
+      <button class="btn" style="flex:1" onclick="closeChgModal()">Annulla</button>
+      <button class="btn pr" style="flex:1" onclick="saveNewPwd()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-tag"><i class="ti ti-pencil-plus"></i> Lesson Builder</div>
+    <h1>UNLIMITED ACCADEMY</h1>
+    <p>Crea la tua lezione, esporta il file .json e importalo nell'app</p>
+    <button class="btn sm" onclick="openChgModal()" style="margin-top:.875rem;font-size:11px;opacity:.7"><i class="ti ti-key"></i> Cambia password</button>
+  </div>
+
+  <!-- INFO LEZIONE -->
+  <div class="card">
+    <div class="card-hd">
+      <i class="ti ti-info-circle"></i>
+      <h2>Informazioni lezione</h2>
+      <span class="badge">Step 1</span>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Titolo lezione *</label>
+        <input type="text" id="l-title" placeholder="es. I 6 tipi di cliente">
+      </div>
+      <div class="field">
+        <label>Codice lezione <span style="color:var(--suc);font-size:10px;font-weight:700;letter-spacing:.05em">● AUTO-GENERATO</span></label>
+        <input type="text" id="l-code" readonly style="background:var(--bg);color:var(--gold2);font-family:'Cinzel',serif;font-weight:700;font-size:15px;letter-spacing:.08em;cursor:default;border-color:rgba(201,168,76,.25)">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Durata massima (minuti)</label>
+        <input type="number" id="l-dur" value="60" min="5" max="180">
+      </div>
+      <div class="field">
+        <label>Secondi per risposta — <span id="timer-val" style="color:var(--gold2);font-weight:700">20 sec</span></label>
+        <div style="display:flex;align-items:center;gap:.875rem;margin-top:.35rem">
+          <span style="font-size:11px;color:var(--mu);white-space:nowrap">5s</span>
+          <input type="range" id="l-timer" min="5" max="60" step="5" value="20" oninput="document.getElementById('timer-val').textContent=this.value+' sec'" style="flex:1;accent-color:var(--gold);height:4px;cursor:pointer">
+          <span style="font-size:11px;color:var(--mu);white-space:nowrap">60s</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;padding:0 22px">
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+          <span style="font-size:9px;color:var(--br)">|</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Descrizione breve</label>
+      <textarea id="l-desc" placeholder="Breve descrizione della lezione (opzionale)" style="min-height:60px"></textarea>
+    </div>
+  </div>
+
+  <!-- SEZIONI -->
+  <div id="sections-container"></div>
+
+  <button class="add-section-btn" id="btn-add-section" onclick="addSection()">
+    <i class="ti ti-plus"></i> Aggiungi sezione <span id="sec-count-hint" style="font-size:11px;opacity:.6">(0/10)</span>
+  </button>
+
+  <!-- EXPORT -->
+  <div class="export-box mt2">
+    <h3>📦 Esporta lezione</h3>
+    <p>Controlla il riepilogo e scarica il file <strong>.json</strong> da importare nell'app.</p>
+    <div class="summary-grid" id="summary-grid">
+      <div class="sum-card"><div class="sum-val" id="sum-sections">0</div><div class="sum-lbl">Sezioni</div></div>
+      <div class="sum-card"><div class="sum-val" id="sum-slides">0</div><div class="sum-lbl">Slide</div></div>
+      <div class="sum-card"><div class="sum-val" id="sum-tf">0</div><div class="sum-lbl">Vero/Falso</div></div>
+      <div class="sum-card"><div class="sum-val" id="sum-mc">0</div><div class="sum-lbl">Scelta multipla</div></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:.25rem">
+      <button class="btn pr" style="font-size:15px;padding:.75rem 2rem" onclick="exportLesson()">
+        <i class="ti ti-download"></i> Scarica lesson.json
+      </button>
+      <button id="btn-publish" style="font-size:15px;padding:.75rem 2rem;background:linear-gradient(135deg,#1a7f4b,#22a861);color:#fff;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit;font-weight:600" onclick="publishLesson()">
+        <i class="ti ti-cloud-upload"></i> Pubblica sull'app
+      </button>
+    </div>
+    <div id="publish-status" style="display:none;margin-top:.75rem;padding:.6rem 1rem;border-radius:8px;font-size:13px"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+var sections = [];
+var MAX_SECTIONS = 10;
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.onload = function(){
+  generateCode();
+  addSection();
+};
+
+
+// ─── PASSWORD ────────────────────────────────────────────────────────────────
+var PWD_KEY = 'ua_builder_pwd';
+var MASTER_CODE = 'UNLIMITED-RESET-2025'; // codice di recupero master
+
+function getStoredPwd(){
+  return localStorage.getItem(PWD_KEY) || 'unlimited2025';
+}
+
+function checkPwd(){
+  var val = document.getElementById('pwd-field').value;
+  var err = document.getElementById('pwd-err');
+  if(val === getStoredPwd()){
+    document.getElementById('pwd-overlay').style.display = 'none';
+    err.textContent = '';
+  } else {
+    err.textContent = 'Password errata. Riprova.';
+    document.getElementById('pwd-field').value = '';
+    document.getElementById('pwd-field').focus();
+  }
+}
+
+function recoverPwd(){
+  var code = window.prompt('Inserisci il codice di recupero (contatta Unlimited Solutions per ottenerlo):');
+  if(code === null) return;
+  if(code.trim() === MASTER_CODE){
+    var np = window.prompt('Codice corretto! Inserisci la nuova password (min. 6 caratteri):');
+    if(!np || np.length < 6){ alert('Password troppo corta.'); return; }
+    localStorage.setItem(PWD_KEY, np);
+    alert('✅ Password aggiornata! Usa la nuova password per accedere.');
+    document.getElementById('pwd-field').value = '';
+    document.getElementById('pwd-field').focus();
+  } else {
+    alert('Codice di recupero non valido.');
+  }
+}
+
+function openChgModal(){
+  document.getElementById('chg-old').value = '';
+  document.getElementById('chg-new').value = '';
+  document.getElementById('chg-new2').value = '';
+  document.getElementById('chg-err').textContent = '';
+  document.getElementById('chg-modal').classList.add('open');
+  setTimeout(function(){ document.getElementById('chg-old').focus(); }, 100);
+}
+
+function closeChgModal(){
+  document.getElementById('chg-modal').classList.remove('open');
+}
+
+function saveNewPwd(){
+  var old = document.getElementById('chg-old').value;
+  var np  = document.getElementById('chg-new').value;
+  var np2 = document.getElementById('chg-new2').value;
+  var err = document.getElementById('chg-err');
+  if(old !== getStoredPwd()){ err.textContent = 'Password attuale errata.'; return; }
+  if(np.length < 6){ err.textContent = 'La nuova password deve avere almeno 6 caratteri.'; return; }
+  if(np !== np2){ err.textContent = 'Le password non coincidono.'; return; }
+  localStorage.setItem(PWD_KEY, np);
+  closeChgModal();
+  toast('✅ Password aggiornata!', 'ok');
+}
+
+// ─── GENERATE UNIQUE CODE ─────────────────────────────────────────────────────
+function generateCode(){
+  // Use timestamp + random to guarantee uniqueness
+  var ts = Date.now().toString(36).toUpperCase().slice(-3);
+  var rnd = Math.floor(Math.random()*900+100);
+  var code = 'ARR-' + ts + rnd;
+  // Store used codes in localStorage to avoid repeats
+  var used = JSON.parse(localStorage.getItem('ua_used_codes')||'[]');
+  while(used.indexOf(code)!==-1){
+    rnd = Math.floor(Math.random()*900+100);
+    code = 'ARR-' + ts + rnd;
+  }
+  used.push(code);
+  if(used.length > 500) used = used.slice(-500); // keep last 500
+  localStorage.setItem('ua_used_codes', JSON.stringify(used));
+  document.getElementById('l-code').value = code;
+}
+
+// ─── ADD SECTION ─────────────────────────────────────────────────────────────
+function addSection(){
+  if(sections.length >= MAX_SECTIONS){ toast('Massimo 10 sezioni per lezione','error'); return; }
+  var idx = sections.length;
+  sections.push({
+    enableSlides: true,
+    enableTF: false,
+    enableMC: false,
+    slides: [{img:'',text:''}],
+    tf: [{q:'',answer:null},{q:'',answer:null},{q:'',answer:null},{q:'',answer:null}],
+    mc: [
+      {q:'',opts:['','','',''],answer:null},
+      {q:'',opts:['','','',''],answer:null},
+      {q:'',opts:['','','',''],answer:null},
+      {q:'',opts:['','','',''],answer:null}
+    ]
+  });
+  renderSections();
+  updateSummary();
+  // Scroll to new section
+  setTimeout(function(){
+    var blocks = document.querySelectorAll('.section-block');
+    if(blocks.length) blocks[blocks.length-1].scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
+}
+
+// ─── RENDER ALL SECTIONS ──────────────────────────────────────────────────────
+function renderSections(){
+  var container = document.getElementById('sections-container');
+  container.innerHTML = '';
+  sections.forEach(function(sec, idx){
+    container.appendChild(buildSectionEl(sec, idx));
+  });
+  var btn = document.getElementById('btn-add-section');
+  btn.disabled = sections.length >= MAX_SECTIONS;
+  document.getElementById('sec-count-hint').textContent = '('+sections.length+'/10)';
+}
+
+function buildSectionEl(sec, idx){
+  var div = document.createElement('div');
+  div.className = 'section-block';
+  div.id = 'section-'+idx;
+
+  var numEl = document.createElement('div');
+  numEl.className = 'section-num';
+  numEl.textContent = 'SEZIONE ' + (idx+1);
+  div.appendChild(numEl);
+
+  // Tab bar
+  var tabBar = document.createElement('div');
+  tabBar.className = 'sec-tabs';
+  tabBar.style.marginTop='.75rem';
+  var tabFlags = ['enableSlides','enableTF','enableMC'];
+  var tabNames = ['Slide','Vero/Falso','Scelta multipla'];
+  var activeTabIdx = 0;
+  tabNames.forEach(function(name, ti){
+    var wrapper = document.createElement('div');
+    wrapper.style.cssText = 'display:inline-flex;align-items:center;gap:0;';
+
+    // Checkbox to enable/disable for export/validation
+    var chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = sec[tabFlags[ti]];
+    chk.title = 'Includi nella lezione';
+    chk.style.cssText = 'margin:0 5px 0 8px;cursor:pointer;accent-color:var(--gold);width:13px;height:13px;';
+    chk.onchange = (function(tIdx, sIdx, flag){ return function(){
+      sections[sIdx][flag] = this.checked;
+      var anyEnabled = tabFlags.some(function(f){ return sections[sIdx][f]; });
+      if(!anyEnabled){ sections[sIdx][flag] = true; this.checked = true; toast('Almeno un tab deve restare attivo','error'); return; }
+      updateSummary();
+    };})(ti, idx, tabFlags[ti]);
+
+    // Tab button — click to navigate to that panel
+    var tb = document.createElement('button');
+    tb.className = 'sec-tab' + (ti===0?' active':'');
+    tb.textContent = name;
+    tb.onclick = (function(tIdx, sIdx){ return function(){
+      var panel = document.getElementById('panel-'+sIdx+'-'+tIdx);
+      if(panel && !panel.innerHTML.trim()){
+        if(tIdx===0) panel.innerHTML = buildSlidesHTML(sections[sIdx], sIdx);
+        if(tIdx===1) panel.innerHTML = buildTFHTML(sections[sIdx], sIdx);
+        if(tIdx===2) panel.innerHTML = buildMCHTML(sections[sIdx], sIdx);
+      }
+      switchTab(sIdx, tIdx);
+    };})(ti, idx);
+
+    wrapper.appendChild(chk);
+    wrapper.appendChild(tb);
+    tabBar.appendChild(wrapper);
+  });
+
+  // Delete button
+  if(sections.length > 1){
+    var del = document.createElement('button');
+    del.className = 'btn danger sm';
+    del.style.marginLeft='auto';
+    del.innerHTML='<i class="ti ti-trash"></i>';
+    del.title='Elimina sezione';
+    del.onclick = (function(sIdx){ return function(){ deleteSection(sIdx); }; })(idx);
+    tabBar.appendChild(del);
+  }
+  div.appendChild(tabBar);
+
+  // Panel 0: Slides (always built, always navigable)
+  var p0 = document.createElement('div');
+  p0.className = 'sec-panel active';
+  p0.id = 'panel-'+idx+'-0';
+  p0.innerHTML = buildSlidesHTML(sec, idx);
+  div.appendChild(p0);
+
+  // Panel 1: T/F
+  var p1 = document.createElement('div');
+  p1.className = 'sec-panel';
+  p1.id = 'panel-'+idx+'-1';
+  p1.innerHTML = buildTFHTML(sec, idx);
+  div.appendChild(p1);
+
+  // Panel 2: MC
+  var p2 = document.createElement('div');
+  p2.className = 'sec-panel';
+  p2.id = 'panel-'+idx+'-2';
+  p2.innerHTML = buildMCHTML(sec, idx);
+  div.appendChild(p2);
+
+  return div;
+}
+
+function switchTab(sIdx, tIdx){
+  var block = document.getElementById('section-'+sIdx);
+  block.querySelectorAll('.sec-tab').forEach(function(t,i){ t.classList.toggle('active', i===tIdx); });
+  block.querySelectorAll('.sec-panel').forEach(function(p,i){ p.classList.toggle('active', i===tIdx); });
+}
+
+// ─── SLIDES HTML ─────────────────────────────────────────────────────────────
+function buildSlidesHTML(sec, idx){
+  var numSlides = sec.slides.length;
+  var html = '<div class="slides-area">';
+  sec.slides.forEach(function(slide, si){
+    html += '<div class="slide-item">';
+    html += '<div class="flex jb" style="margin-bottom:.75rem"><div class="slide-num">SLIDE '+(si+1)+'</div>';
+    if(si > 0) html += '<button class="btn danger sm" onclick="removeSlide('+idx+','+si+')"><i class="ti ti-x"></i> Rimuovi</button>';
+    html += '</div>';
+    // Image upload
+    html += '<div class="img-upload-area" id="imgarea-'+idx+'-'+si+'">';
+    if(slide.img){
+      html += '<img class="img-preview" id="imgprev-'+idx+'-'+si+'" src="'+slide.img+'">';
+    } else {
+      html += '<div class="placeholder" id="imgprev-'+idx+'-'+si+'">';
+      html += '<i class="ti ti-photo-plus"></i>';
+      html += '<p>Clicca per caricare un\'immagine</p>';
+      html += '<p style="font-size:10px;margin-top:4px;opacity:.6">JPG, PNG, WEBP — max 2MB</p>';
+      html += '</div>';
+    }
+    html += '<input type="file" accept="image/*" onchange="onImgUpload(this,'+idx+','+si+')">';
+    html += '</div>';
+    // Text
+    html += '<div class="field"><label>Testo della slide</label>';
+    html += '<textarea placeholder="Scrivi il contenuto della slide..." oninput="onSlideText(this,'+idx+','+si+')" style="min-height:90px">'+esc(slide.text)+'</textarea></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  if(numSlides < 2){
+    html += '<button class="btn sm mt" onclick="addSlide('+idx+')"><i class="ti ti-plus"></i> Aggiungi seconda slide</button>';
+  }
+  return html;
+}
+
+// ─── T/F HTML ─────────────────────────────────────────────────────────────────
+function buildTFHTML(sec, idx){
+  var html = '<div class="quiz-block"><div class="quiz-title"><i class="ti ti-toggle-left"></i> 4 domande Vero o Falso</div>';
+  sec.tf.forEach(function(q, qi){
+    html += '<div class="q-item">';
+    html += '<div class="q-label">Domanda '+(qi+1)+'</div>';
+    html += '<input type="text" placeholder="Scrivi la domanda..." value="'+esc(q.q)+'" oninput="onTFQ(this,'+idx+','+qi+')">';
+    html += '<div class="tf-row">';
+    html += '<label class="tf-opt'+(q.answer===true?' selected-true':'')+'" onclick="setTF('+idx+','+qi+',true)">';
+    html += '<i class="ti ti-check"></i> Vero</label>';
+    html += '<label class="tf-opt'+(q.answer===false?' selected-false':'')+'" onclick="setTF('+idx+','+qi+',false)">';
+    html += '<i class="ti ti-x"></i> Falso</label>';
+    html += '<span style="font-size:11px;color:var(--mu);margin-left:auto">← seleziona la risposta corretta</span>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ─── MC HTML ──────────────────────────────────────────────────────────────────
+function buildMCHTML(sec, idx){
+  var html = '<div class="quiz-block"><div class="quiz-title"><i class="ti ti-list-check"></i> 4 domande a Scelta multipla</div>';
+  var letters = ['A','B','C','D'];
+  sec.mc.forEach(function(q, qi){
+    html += '<div class="q-item">';
+    html += '<div class="q-label">Domanda '+(qi+1)+'</div>';
+    html += '<input type="text" placeholder="Scrivi la domanda..." value="'+esc(q.q)+'" oninput="onMCQ(this,'+idx+','+qi+')" style="margin-bottom:.75rem">';
+    html += '<div class="mc-options">';
+    q.opts.forEach(function(opt, oi){
+      html += '<div class="mc-opt-row">';
+      html += '<div class="opt-letter">'+letters[oi]+'</div>';
+      html += '<input type="text" placeholder="Opzione '+letters[oi]+'" value="'+esc(opt)+'" oninput="onMCOpt(this,'+idx+','+qi+','+oi+')">';
+      html += '<div class="opt-radio'+(q.answer===oi?' selected':'')+'" onclick="setMCAnswer('+idx+','+qi+','+oi+')" title="Imposta come risposta corretta"><i class="ti ti-check"></i></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    if(q.answer !== null){
+      html += '<div style="font-size:11px;color:var(--suc);margin-top:.5rem"><i class="ti ti-check"></i> Risposta corretta: opzione '+letters[q.answer]+'</div>';
+    } else {
+      html += '<div style="font-size:11px;color:var(--mu);margin-top:.5rem">↑ Clicca sul cerchio verde per indicare la risposta corretta</div>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ─── EVENT HANDLERS ───────────────────────────────────────────────────────────
+function onImgUpload(input, sIdx, slideIdx){
+  var file = input.files[0];
+  if(!file) return;
+  if(file.size > 2.5*1024*1024){ toast('Immagine troppo grande (max 2MB)','error'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    sections[sIdx].slides[slideIdx].img = e.target.result;
+    refreshSlidesPanel(sIdx);
+    updateSummary();
+  };
+  reader.readAsDataURL(file);
+}
+
+function onSlideText(el, sIdx, slideIdx){
+  sections[sIdx].slides[slideIdx].text = el.value;
+}
+
+function addSlide(sIdx){
+  if(sections[sIdx].slides.length >= 2){ toast('Massimo 2 slide per sezione','error'); return; }
+  sections[sIdx].slides.push({img:'',text:''});
+  refreshSlidesPanel(sIdx);
+  updateSummary();
+}
+
+function removeSlide(sIdx, slideIdx){
+  sections[sIdx].slides.splice(slideIdx,1);
+  refreshSlidesPanel(sIdx);
+  updateSummary();
+}
+
+function refreshSlidesPanel(sIdx){
+  var panel = document.getElementById('panel-'+sIdx+'-0');
+  if(panel) panel.innerHTML = buildSlidesHTML(sections[sIdx], sIdx);
+}
+
+function onTFQ(el, sIdx, qIdx){
+  sections[sIdx].tf[qIdx].q = el.value;
+}
+
+function setTF(sIdx, qIdx, val){
+  sections[sIdx].tf[qIdx].answer = val;
+  var panel = document.getElementById('panel-'+sIdx+'-1');
+  if(panel) panel.innerHTML = buildTFHTML(sections[sIdx], sIdx);
+  updateSummary();
+}
+
+function onMCQ(el, sIdx, qIdx){
+  sections[sIdx].mc[qIdx].q = el.value;
+}
+
+function onMCOpt(el, sIdx, qIdx, oIdx){
+  sections[sIdx].mc[qIdx].opts[oIdx] = el.value;
+}
+
+function setMCAnswer(sIdx, qIdx, oIdx){
+  sections[sIdx].mc[qIdx].answer = oIdx;
+  var panel = document.getElementById('panel-'+sIdx+'-2');
+  if(panel) panel.innerHTML = buildMCHTML(sections[sIdx], sIdx);
+  updateSummary();
+}
+
+function deleteSection(sIdx){
+  if(sections.length <= 1){ toast('Serve almeno una sezione','error'); return; }
+  if(!confirm('Eliminare la sezione '+(sIdx+1)+'? I dati andranno persi.')) return;
+  sections.splice(sIdx,1);
+  renderSections();
+  updateSummary();
+}
+
+// ─── SUMMARY ─────────────────────────────────────────────────────────────────
+function updateSummary(){
+  var totalSlides=0, totalTF=0, totalMC=0;
+  sections.forEach(function(s){
+    if(s.enableSlides) totalSlides += s.slides.length;
+    if(s.enableTF) totalTF += s.tf.filter(function(q){ return q.q.trim() && q.answer!==null; }).length;
+    if(s.enableMC) totalMC += s.mc.filter(function(q){ return q.q.trim() && q.answer!==null; }).length;
+  });
+  document.getElementById('sum-sections').textContent = sections.length;
+  document.getElementById('sum-slides').textContent = totalSlides;
+  document.getElementById('sum-tf').textContent = totalTF;
+  document.getElementById('sum-mc').textContent = totalMC;
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+function exportLesson(){
+  var title = document.getElementById('l-title').value.trim();
+  var code = document.getElementById('l-code').value.trim();
+  var dur = parseInt(document.getElementById('l-dur').value)||60;
+  var timer = parseInt(document.getElementById('l-timer').value)||20;
+  var desc = document.getElementById('l-desc').value.trim();
+
+  if(!title){ toast('Inserisci il titolo della lezione','error'); document.getElementById('l-title').focus(); return; }
+
+  // Validate sections
+  var errors = [];
+  sections.forEach(function(sec, si){
+    if(sec.enableSlides){
+      sec.slides.forEach(function(sl, slj){
+        if(!sl.text.trim()) errors.push('Sezione '+(si+1)+', Slide '+(slj+1)+': testo mancante');
+      });
+    }
+    if(sec.enableTF){
+      sec.tf.forEach(function(q, qi){
+        if(!q.q.trim()) errors.push('Sezione '+(si+1)+', V/F '+(qi+1)+': domanda mancante');
+        if(q.answer===null) errors.push('Sezione '+(si+1)+', V/F '+(qi+1)+': risposta corretta non selezionata');
+      });
+    }
+    if(sec.enableMC){
+      sec.mc.forEach(function(q, qi){
+        if(!q.q.trim()) errors.push('Sezione '+(si+1)+', Multipla '+(qi+1)+': domanda mancante');
+        if(q.opts.some(function(o){ return !o.trim(); })) errors.push('Sezione '+(si+1)+', Multipla '+(qi+1)+': opzioni incomplete');
+        if(q.answer===null) errors.push('Sezione '+(si+1)+', Multipla '+(qi+1)+': risposta corretta non selezionata');
+      });
+    }
+  });
+
+  if(errors.length){
+    toast('Correggi '+errors.length+' errori prima di esportare','error');
+    alert('Errori da correggere:\n\n'+errors.slice(0,8).join('\n')+(errors.length>8?'\n... e altri '+(errors.length-8):'')+'\n\nCompleta tutti i campi obbligatori e seleziona le risposte corrette.');
+    return;
+  }
+
+  // Build JSON structure compatible with UnlimitedAccademy app
+  var lesson = {
+    title: title,
+    code: code,
+    dur: dur,
+    timer: timer,
+    author: 'Unlimited Accademy',
+    desc: desc,
+    createdAt: new Date().toISOString(),
+    version: '1.0',
+    sections: sections.map(function(sec){
+      return {
+        slides: sec.enableSlides ? sec.slides.map(function(sl){
+          return { img: sl.img, text: sl.text };
+        }) : [],
+        questions: []
+          .concat(sec.enableTF ? sec.tf.map(function(q){
+            return { type:'tf', q:q.q, answer:q.answer };
+          }) : [])
+          .concat(sec.enableMC ? sec.mc.map(function(q){
+            return { type:'mc', q:q.q, opts:q.opts, answer:q.answer };
+          }) : [])
+      };
+    })
+  };
+
+  var blob = new Blob([JSON.stringify(lesson, null, 2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = code + '_' + title.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Lezione esportata con successo!','ok');
+}
+
+// ─── SUPABASE PUBLISH ────────────────────────────────────────────────────────
+var SUPA_URL = 'https://pvceaejclrbgbxiuacwq.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2Y2VhZWpjbHJiZ2J4aXVhY3dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDQwNjcsImV4cCI6MjA5NTM4MDA2N30.DgqFPHQUUObnfnNVl4_vz2ixICr--Rm9WwxABdIu7vw';
+
+async function publishLesson(){
+  // ── 1. Build & validate (same as exportLesson) ──
+  var title = document.getElementById('l-title').value.trim();
+  var code  = document.getElementById('l-code').value.trim().toUpperCase();
+  var dur   = parseInt(document.getElementById('l-dur').value)||60;
+  var timer = parseInt(document.getElementById('l-timer').value)||20;
+  var desc  = (document.getElementById('l-desc')||{}).value||'';
+
+  if(!title){ toast('Inserisci il titolo prima di pubblicare','error'); return; }
+  if(!code){  toast('Codice lezione mancante','error'); return; }
+
+  var errors = [];
+  sections.forEach(function(sec, si){
+    if(sec.enableTF) sec.tf.forEach(function(q,qi){
+      if(!q.q.trim()) errors.push('Sezione '+(si+1)+', V/F '+(qi+1)+': testo mancante');
+      if(q.answer===null) errors.push('Sezione '+(si+1)+', V/F '+(qi+1)+': risposta non selezionata');
+    });
+    if(sec.enableMC) sec.mc.forEach(function(q,qi){
+      if(!q.q.trim()) errors.push('Sezione '+(si+1)+', Multipla '+(qi+1)+': testo mancante');
+      if(q.answer===null) errors.push('Sezione '+(si+1)+', Multipla '+(qi+1)+': risposta corretta non selezionata');
+    });
+  });
+  if(errors.length){
+    toast('Correggi '+errors.length+' errori prima di pubblicare','error');
+    alert('Errori:\n\n'+errors.slice(0,8).join('\n'));
+    return;
+  }
+
+  // ── 2. Convert sections → modules (same mapping as importLessonJSON in app) ──
+  var modules = sections.map(function(sec){
+    var imgs = (sec.enableSlides ? sec.slides : []).filter(function(sl){ return sl.img; }).map(function(sl){ return sl.img; });
+    var slideTexts = (sec.enableSlides ? sec.slides : []).map(function(sl){ return sl.text||''; });
+    var questions = [];
+    if(sec.enableTF) sec.tf.forEach(function(q){
+      questions.push({ q:q.q, type:'tf', opts:['Vero','Falso'], correct: q.answer===true?'Vero':'Falso' });
+    });
+    if(sec.enableMC) sec.mc.forEach(function(q){
+      questions.push({ q:q.q, type:'mc', opts:q.opts, correct: q.opts[q.answer]||q.opts[0] });
+    });
+    return { imgs:imgs, slideTexts:slideTexts, questions:questions };
+  });
+
+  // ── 3. Show loading ──
+  var btn = document.getElementById('btn-publish');
+  var statusEl = document.getElementById('publish-status');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Pubblicazione...';
+  statusEl.style.display = 'none';
+
+  // ── 4. Insert or Update to Supabase (INSERT first, PATCH if already exists) ──
+  try {
+    // Check if lesson already exists
+    var checkRes = await fetch(SUPA_URL+'/rest/v1/lessons?code=eq.'+encodeURIComponent(code)+'&select=id', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer '+SUPA_KEY }
+    });
+    var existing = await checkRes.json();
+    var method = (existing && existing.length > 0) ? 'PATCH' : 'POST';
+    var url = (method === 'PATCH')
+      ? SUPA_URL+'/rest/v1/lessons?code=eq.'+encodeURIComponent(code)
+      : SUPA_URL+'/rest/v1/lessons';
+
+    var res = await fetch(url, {
+      method: method,
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer '+SUPA_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ code:code, title:title, dur:dur, qsec:timer, modules:modules })
+    });
+
+    if(res.ok || res.status===200 || res.status===201 || res.status===204){
+      statusEl.style.display = 'block';
+      statusEl.style.background = 'rgba(26,127,75,.15)';
+      statusEl.style.border = '1px solid #22a861';
+      statusEl.style.color = '#22a861';
+      statusEl.innerHTML = '✅ <strong>Lezione pubblicata!</strong> Codice: <strong>'+code+'</strong> — Gli studenti la vedono subito nell\'app.';
+      toast('✅ Lezione pubblicata sull\'app!','ok');
+    } else {
+      var errBody = await res.text();
+      throw new Error('HTTP '+res.status+': '+errBody);
+    }
+  } catch(err){
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(180,50,50,.12)';
+    statusEl.style.border = '1px solid #c0392b';
+    statusEl.style.color = '#e74c3c';
+    statusEl.innerHTML = '❌ <strong>Errore:</strong> '+err.message;
+    toast('Errore pubblicazione: '+err.message,'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-cloud-upload"></i> Pubblica sull\'app';
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, type){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = type==='error' ? 'var(--dng)' : 'var(--gold)';
+  el.style.color = type==='error' ? 'var(--dng)' : 'var(--gold)';
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.classList.remove('show'); }, 3000);
+}
+</script>
+</body>
+</html>
