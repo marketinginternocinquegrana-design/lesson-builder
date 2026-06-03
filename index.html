@@ -189,6 +189,12 @@ select option{background:var(--bg3)}
     <div class="pwd-err" id="pwd-err"></div>
     <button class="pwd-btn" onclick="checkPwd()">🔓 Accedi</button>
     <span class="pwd-link" onclick="recoverPwd()">Password dimenticata?</span>
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)">
+      <span style="font-size:11px;color:#555">Prima volta o password non funziona?</span><br>
+      <button onclick="resetPwdAndAccess()" style="margin-top:.5rem;background:none;border:1px solid rgba(255,255,255,.15);color:#888;border-radius:7px;padding:.4rem 1rem;font-size:12px;cursor:pointer;font-family:inherit">
+        🔄 Reimposta accesso
+      </button>
+    </div>
   </div>
 </div>
 
@@ -321,6 +327,13 @@ var MASTER_CODE = 'UNLIMITED-RESET-2025'; // codice di recupero master
 
 function getStoredPwd(){
   return localStorage.getItem(PWD_KEY) || 'unlimited2025';
+}
+
+function resetPwdAndAccess(){
+  if(!confirm('Questa operazione reimposta la password a "unlimited2025" e ti fa accedere.\nProcedere?')) return;
+  localStorage.removeItem(PWD_KEY);
+  document.getElementById('pwd-overlay').style.display = 'none';
+  document.getElementById('pwd-err').textContent = '';
 }
 
 function checkPwd(){
