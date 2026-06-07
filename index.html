@@ -227,7 +227,32 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
+<!-- MODAL BOZZE -->
+<div id="draft-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10001;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:#1a1a1c;border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:1.5rem;max-width:520px;width:100%;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <h3 style="font-size:16px;color:#c9a84c"><i class="ti ti-clipboard-list"></i> Bozze salvate</h3>
+      <button onclick="closeDraftModal()" style="background:none;border:none;color:#888;font-size:22px;cursor:pointer">&times;</button>
+    </div>
+    <div id="draft-list-content"></div>
+  </div>
+</div>
+
 <div class="wrap">
+  <!-- BANNER BOZZE -->
+  <div id="draft-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,.13),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.35);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <i class="ti ti-clipboard-text" style="font-size:22px;color:#c9a84c"></i>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#c9a84c">Bozza salvata</div>
+        <div id="draft-banner-info" style="font-size:12px;color:#888;margin-top:2px"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn sm" onclick="openDraftList()" style="border-color:rgba(201,168,76,.4);color:#c9a84c"><i class="ti ti-list"></i> Tutte le bozze</button>
+      <button class="btn sm pr" onclick="loadLastDraft()"><i class="ti ti-restore"></i> Riprendi ultima</button>
+    </div>
+  </div>
 
   <!-- BANNER BOZZE -->
   <div id="draft-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,.13),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.35);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between">
@@ -327,6 +352,9 @@ select option{background:var(--bg3)}
       <button class="btn" onclick="saveDraft()" style="font-size:13px;padding:.6rem 1.25rem;border-color:rgba(201,168,76,.4);color:#c9a84c;background:rgba(201,168,76,.08)">
         <i class="ti ti-device-floppy"></i> Salva bozza
       </button>
+      <button class="btn" onclick="saveDraft()" style="font-size:13px;padding:.6rem 1.25rem;border-color:rgba(201,168,76,.4);color:#c9a84c;background:rgba(201,168,76,.08)">
+        <i class="ti ti-device-floppy"></i> Salva bozza
+      </button>
       <button class="btn pr" style="font-size:15px;padding:.75rem 2rem" onclick="exportLesson()">
         <i class="ti ti-download"></i> Scarica lesson.json
       </button>
@@ -342,6 +370,187 @@ select option{background:var(--bg3)}
 <div id="toast"></div>
 
 <script>
+
+// ─── SISTEMA BOZZE ───────────────────────────────────────────────────────────
+var DRAFT_KEY = 'ua_builder_drafts';
+var MAX_DRAFTS = 10;
+
+function getDrafts(){
+  try{ return JSON.parse(localStorage.getItem(DRAFT_KEY)||'[]'); }catch(e){ return []; }
+}
+
+function saveDraft(){
+  var title=(document.getElementById('l-title')||{}).value||'';
+  var code=(document.getElementById('l-code')||{}).value||'';
+  var dur=(document.getElementById('l-dur')||{}).value||60;
+  var timer=(document.getElementById('l-timer')||{}).value||20;
+  var desc=(document.getElementById('l-desc')||{}).value||'';
+  var cleanSections=sections.map(function(sec){
+    return {
+      enableSlides:sec.enableSlides,enableTF:sec.enableTF,enableMC:sec.enableMC,
+      slides:(sec.slides||[]).map(function(sl){return {img:(sl.img&&sl.img.startsWith('http'))?sl.img:'',text:sl.text||''};}),
+      tf:(sec.tf||[]).map(function(q){return {q:q.q,answer:q.answer};}),
+      mc:(sec.mc||[]).map(function(q){return {q:q.q,opts:q.opts,answer:q.answer};})
+    };
+  });
+  var draft={id:'draft_'+Date.now(),savedAt:new Date().toISOString(),title:title||'Senza titolo',code:code,dur:parseInt(dur)||60,timer:parseInt(timer)||20,desc:desc,sections:cleanSections};
+  var drafts=getDrafts();
+  var existIdx=-1;
+  for(var i=0;i<drafts.length;i++){if(drafts[i].code&&drafts[i].code===code){existIdx=i;break;}}
+  if(existIdx>=0){drafts[existIdx]=draft;}
+  else{drafts.unshift(draft);if(drafts.length>MAX_DRAFTS)drafts=drafts.slice(0,MAX_DRAFTS);}
+  localStorage.setItem(DRAFT_KEY,JSON.stringify(drafts));
+  updateDraftBanner();
+  toast('Bozza salvata! Riprendi quando vuoi.','ok');
+}
+
+function loadDraft(draftId){
+  var drafts=getDrafts(),draft=null;
+  for(var i=0;i<drafts.length;i++){if(drafts[i].id===draftId){draft=drafts[i];break;}}
+  if(!draft){toast('Bozza non trovata','error');return;}
+  if(!confirm('Caricare la bozza "'+draft.title+'"?\nI dati attuali andranno persi.'))return;
+  document.getElementById('l-title').value=draft.title||'';
+  document.getElementById('l-code').value=draft.code||'';
+  document.getElementById('l-dur').value=draft.dur||60;
+  document.getElementById('l-timer').value=draft.timer||20;
+  var timerLbl=document.getElementById('timer-val');
+  if(timerLbl)timerLbl.textContent=(draft.timer||20)+' sec';
+  var descEl=document.getElementById('l-desc');
+  if(descEl)descEl.value=draft.desc||'';
+  sections=(draft.sections||[]).map(function(sec){
+    return {
+      enableSlides:sec.enableSlides!==undefined?sec.enableSlides:true,
+      enableTF:sec.enableTF||false,enableMC:sec.enableMC||false,
+      slides:(sec.slides&&sec.slides.length)?sec.slides:[{img:'',text:''}],
+      tf:(sec.tf&&sec.tf.length)?sec.tf:[{q:'',answer:null},{q:'',answer:null},{q:'',answer:null},{q:'',answer:null}],
+      mc:(sec.mc&&sec.mc.length)?sec.mc:[{q:'',opts:['','','',''],answer:null},{q:'',opts:['','','',''],answer:null},{q:'',opts:['','','',''],answer:null},{q:'',opts:['','','',''],answer:null}]
+    };
+  });
+  if(!sections.length){sections=[];addSection();}
+  renderSections();updateSummary();closeDraftModal();updateDraftBanner();
+  toast('Bozza ripristinata!','ok');
+  setTimeout(function(){window.scrollTo({top:0,behavior:'smooth'});},200);
+}
+
+function loadLastDraft(){
+  var drafts=getDrafts();
+  if(!drafts.length){toast('Nessuna bozza salvata','error');return;}
+  loadDraft(drafts[0].id);
+}
+
+function deleteDraft(draftId){
+  if(!confirm('Eliminare questa bozza?'))return;
+  var drafts=getDrafts().filter(function(d){return d.id!==draftId;});
+  localStorage.setItem(DRAFT_KEY,JSON.stringify(drafts));
+  renderDraftList();updateDraftBanner();
+  toast('Bozza eliminata','ok');
+}
+
+function openDraftList(){renderDraftList();document.getElementById('draft-modal').style.display='flex';}
+function closeDraftModal(){document.getElementById('draft-modal').style.display='none';}
+
+function escD(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderDraftList(){
+  var drafts=getDrafts();
+  var el=document.getElementById('draft-list-content');
+  if(!drafts.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:#888;font-size:13px"><i class="ti ti-clipboard-off" style="font-size:32px;display:block;margin-bottom:.5rem;opacity:.4"></i>Nessuna bozza salvata.<br>Clicca <strong>Salva bozza</strong> durante la creazione.</div>';return;}
+  el.innerHTML=drafts.map(function(d){
+    var date=new Date(d.savedAt);
+    var dateStr=date.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})+' '+date.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    var nsec=(d.sections||[]).length;
+    var nslides=(d.sections||[]).reduce(function(a,s){return a+(s.slides||[]).length;},0);
+    var nq=(d.sections||[]).reduce(function(a,s){return a+(s.tf||[]).filter(function(q){return q.q&&q.q.trim();}).length+(s.mc||[]).filter(function(q){return q.q&&q.q.trim();}).length;},0);
+    var pct=calcDraftCompletion(d);
+    var pctColor=pct<40?'#e74c3c':pct<80?'#f39c12':'#22a861';
+    return '<div style="border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:1rem;margin-bottom:.75rem;background:rgba(255,255,255,.03)"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#c9a84c;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escD(d.title)+'</div><div style="font-size:11px;color:#b8952e;font-weight:700;letter-spacing:.06em;margin-bottom:5px">'+escD(d.code)+'</div><div style="font-size:11px;color:#888">'+nsec+' sez · '+nslides+' slide · '+nq+' dom · '+d.dur+'min</div><div style="font-size:11px;color:#888;margin-top:3px">'+dateStr+'</div><div style="margin-top:.5rem"><div style="display:flex;justify-content:space-between;font-size:10px;color:#888;margin-bottom:3px"><span>Completamento</span><span style="color:'+pctColor+';font-weight:700">'+pct+'%</span></div><div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+pctColor+';border-radius:2px"></div></div></div></div><div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0"><button class="btn sm pr" onclick="loadDraft(\''+d.id+'\')"><i class="ti ti-restore"></i> Riprendi</button><button class="btn sm dn" onclick="deleteDraft(\''+d.id+'\')"><i class="ti ti-trash"></i></button></div></div></div>';
+  }).join('');
+}
+
+function calcDraftCompletion(d){
+  var total=0,done=0;
+  total++;if(d.title&&d.title!=='Senza titolo'&&d.title.trim())done++;
+  (d.sections||[]).forEach(function(sec){
+    if(sec.enableSlides)(sec.slides||[]).forEach(function(sl){total++;if(sl.text&&sl.text.trim())done++;});
+    if(sec.enableTF)(sec.tf||[]).forEach(function(q){total++;if(q.q&&q.q.trim()&&q.answer!==null)done++;});
+    if(sec.enableMC)(sec.mc||[]).forEach(function(q){total++;if(q.q&&q.q.trim()&&q.answer!==null)done++;});
+  });
+  return total?Math.round((done/total)*100):0;
+}
+
+function updateDraftBanner(){
+  var drafts=getDrafts();
+  var banner=document.getElementById('draft-banner');
+  var info=document.getElementById('draft-banner-info');
+  if(!banner)return;
+  if(!drafts.length){banner.style.display='none';return;}
+  var last=drafts[0];
+  var date=new Date(last.savedAt);
+  var dateStr=date.toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' alle '+date.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  info.textContent='"'+(last.title||'Senza titolo')+'" — salvata il '+dateStr+' · '+drafts.length+' bozz'+(drafts.length===1?'a':'e')+' totali';
+  banner.style.display='flex';
+}
+
+// ─── MODALITÀ MODIFICA DA FORMARREDA ─────────────────────────────────────────
+function checkEditMode(){
+  var params=new URLSearchParams(window.location.search);
+  var editCode=params.get('edit');
+  if(!editCode)return;
+  var stored=localStorage.getItem('ua_edit_lesson');
+  if(!stored)return;
+  try{
+    var lesson=JSON.parse(stored);
+    if(lesson.code!==decodeURIComponent(editCode))return;
+    document.getElementById('l-title').value=lesson.title||'';
+    document.getElementById('l-code').value=lesson.code||'';
+    document.getElementById('l-dur').value=lesson.dur||60;
+    document.getElementById('l-timer').value=lesson.timer||20;
+    var timerLbl=document.getElementById('timer-val');
+    if(timerLbl)timerLbl.textContent=(lesson.timer||20)+' sec';
+    var descEl=document.getElementById('l-desc');
+    if(descEl)descEl.value=lesson.desc||'';
+    sections=(lesson.modules||[]).map(function(mod){
+      var imgs=(mod.imgs||[]).map(function(url){return {img:url,text:''};});
+      if(mod.slides&&mod.slides.length)imgs=mod.slides;
+      var slideTexts=mod.slideTexts||[];
+      imgs=imgs.map(function(sl,i){if(typeof sl==='string')return {img:sl,text:slideTexts[i]||''};return sl;});
+      var questions=(mod.questions||[]).map(function(q){
+        if(q.type==='mc')return {q:q.q,type:'mc',opts:q.opts||['','','',''],answer:q.correct||null};
+        return {q:q.q,type:'tf',opts:['Vero','Falso'],answer:q.correct||null};
+      });
+      return {
+        enableSlides:imgs.length>0,
+        enableTF:questions.some(function(q){return q.type==='tf';}),
+        enableMC:questions.some(function(q){return q.type==='mc';}),
+        slides:imgs.length?imgs:[{img:'',text:''}],
+        tf:questions.filter(function(q){return q.type==='tf';}),
+        mc:questions.filter(function(q){return q.type==='mc';})
+      };
+    });
+    if(!sections.length)addSection();
+    renderSections();updateSummary();
+    localStorage.removeItem('ua_edit_lesson');
+    showEditBanner(lesson.title,lesson.code);
+    toast('Lezione "'+lesson.title+'" caricata. Modifica e pubblica!','ok');
+  }catch(e){console.error('Errore caricamento lezione:',e);}
+}
+
+function showEditBanner(title,code){
+  var existing=document.getElementById('edit-mode-banner');
+  if(existing)existing.remove();
+  var banner=document.createElement('div');
+  banner.id='edit-mode-banner';
+  banner.style.cssText='background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.4);border-radius:10px;padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem';
+  banner.innerHTML='<div style="display:flex;align-items:center;gap:.75rem"><i class="ti ti-pencil" style="font-size:18px;color:#c9a84c"></i><div><div style="font-size:13px;font-weight:700;color:#c9a84c">Modalit\u00e0 modifica</div><div style="font-size:12px;color:#888;margin-top:2px">Stai modificando: <strong style="color:#c9a84c">'+title+'</strong> ('+code+')</div></div></div><div style="font-size:11px;color:#888;background:rgba(255,255,255,.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1)">\uD83D\uDCA1 Clicca <strong>Pubblica sull\'app</strong> per salvare</div>';
+  var wrap=document.querySelector('.wrap');
+  if(wrap)wrap.insertBefore(banner,wrap.firstChild);
+}
+
+document.addEventListener('click',function(e){
+  var m=document.getElementById('draft-modal');
+  if(m&&e.target===m)closeDraftModal();
+});
+
 // ─── STATE ───────────────────────────────────────────────────────────────────
 var sections = [];
 var MAX_SECTIONS = 10;
