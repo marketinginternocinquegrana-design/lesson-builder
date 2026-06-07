@@ -201,9 +201,9 @@ select option{background:var(--bg3)}
     <button class="pwd-btn" onclick="checkPwd()">🔓 Accedi</button>
     <span class="pwd-link" onclick="recoverPwd()">Password dimenticata?</span>
     <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.08)">
-      <span style="font-size:11px;color:#555">Prima volta o password non funziona?</span><br>
-      <button onclick="resetPwdAndAccess()" style="margin-top:.5rem;background:none;border:1px solid rgba(255,255,255,.15);color:#888;border-radius:7px;padding:.4rem 1rem;font-size:12px;cursor:pointer;font-family:inherit">
-        🔄 Reimposta accesso
+      <span style="font-size:11px;color:#555">Password non funziona?</span><br>
+      <button onclick="resetPwdAndAccess()" style="margin-top:.5rem;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:#c9a84c;border-radius:7px;padding:.5rem 1.25rem;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600">
+        🔄 Entra senza password
       </button>
     </div>
   </div>
@@ -805,7 +805,6 @@ function getStoredPwd(){
 }
 
 function resetPwdAndAccess(){
-  if(!confirm('Questa operazione reimposta la password a "unlimited2025" e ti fa accedere.\nProcedere?')) return;
   localStorage.removeItem(PWD_KEY);
   document.getElementById('pwd-overlay').style.display = 'none';
   document.getElementById('pwd-err').textContent = '';
@@ -814,11 +813,12 @@ function resetPwdAndAccess(){
 function checkPwd(){
   var val = document.getElementById('pwd-field').value;
   var err = document.getElementById('pwd-err');
+  var overlay = document.getElementById('pwd-overlay');
   if(val === getStoredPwd()){
-    document.getElementById('pwd-overlay').style.display = 'none';
-    err.textContent = '';
+    if(overlay) overlay.style.display = 'none';
+    if(err) err.textContent = '';
   } else {
-    err.textContent = 'Password errata. Riprova.';
+    if(err) err.textContent = 'Password errata. Riprova.';
     document.getElementById('pwd-field').value = '';
     document.getElementById('pwd-field').focus();
   }
