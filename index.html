@@ -347,10 +347,87 @@ var sections = [];
 var MAX_SECTIONS = 10;
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
+
+// ─── MODALITÀ MODIFICA DA FORMARREDA ─────────────────────────────────────────
+function checkEditMode(){
+  var params = new URLSearchParams(window.location.search);
+  var editCode = params.get('edit');
+  if(!editCode) return;
+
+  var stored = localStorage.getItem('ua_edit_lesson');
+  if(!stored) return;
+
+  try {
+    var lesson = JSON.parse(stored);
+    if(lesson.code !== decodeURIComponent(editCode)) return;
+
+    // Popola i campi con i dati della lezione
+    document.getElementById('l-title').value = lesson.title || '';
+    document.getElementById('l-code').value  = lesson.code  || '';
+    document.getElementById('l-dur').value   = lesson.dur   || 60;
+    document.getElementById('l-timer').value = lesson.timer || 20;
+    var timerLbl = document.getElementById('timer-val');
+    if(timerLbl) timerLbl.textContent = (lesson.timer||20) + ' sec';
+    var descEl = document.getElementById('l-desc');
+    if(descEl) descEl.value = lesson.desc || '';
+
+    // Ricostruisce le sezioni dai moduli
+    sections = (lesson.modules || []).map(function(mod){
+      var imgs = (mod.imgs || []).map(function(url){ return {img:url, text:''}; });
+      // Se slides è già un array di oggetti, usalo direttamente
+      if(mod.slides && mod.slides.length) imgs = mod.slides;
+      var slideTexts = mod.slideTexts || [];
+      // Aggiunge i testi alle slide se non già presenti
+      imgs = imgs.map(function(sl,i){
+        if(typeof sl === 'string') return {img:sl, text:slideTexts[i]||''};
+        return sl;
+      });
+      var questions = (mod.questions || []).map(function(q){
+        if(q.type==='mc') return {q:q.q,type:'mc',opts:q.opts||['','','',''],answer:q.correct||null};
+        return {q:q.q,type:'tf',opts:['Vero','Falso'],answer:q.correct||null};
+      });
+      return {
+        enableSlides: imgs.length>0,
+        enableTF: questions.some(function(q){return q.type==='tf';}),
+        enableMC: questions.some(function(q){return q.type==='mc';}),
+        slides: imgs.length ? imgs : [{img:'',text:''}],
+        tf: questions.filter(function(q){return q.type==='tf';}),
+        mc: questions.filter(function(q){return q.type==='mc';})
+      };
+    });
+
+    if(!sections.length) addSection();
+    renderSections();
+    updateSummary();
+
+    // Mostra banner di modifica
+    showEditBanner(lesson.title, lesson.code);
+
+    // Pulisce il localStorage dopo il caricamento
+    localStorage.removeItem('ua_edit_lesson');
+
+    toast('✅ Lezione "'+lesson.title+'" caricata. Modifica e pubblica!','ok');
+  } catch(e){
+    console.error('Errore caricamento lezione:', e);
+  }
+}
+
+function showEditBanner(title, code){
+  var existing = document.getElementById('edit-mode-banner');
+  if(existing) existing.remove();
+  var banner = document.createElement('div');
+  banner.id = 'edit-mode-banner';
+  banner.style.cssText = 'background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.4);border-radius:10px;padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem';
+  banner.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem"><i class="ti ti-pencil" style="font-size:18px;color:#c9a84c"></i><div><div style="font-size:13px;font-weight:700;color:#c9a84c">Modalità modifica</div><div style="font-size:12px;color:#888;margin-top:2px">Stai modificando: <strong style="color:#c9a84c">'+title+'</strong> ('+code+')</div></div></div><div style="font-size:11px;color:#888;background:rgba(255,255,255,.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1)">💡 Clicca <strong>Pubblica sull'app</strong> per salvare le modifiche</div>';
+  var wrap = document.querySelector('.wrap');
+  if(wrap) wrap.insertBefore(banner, wrap.firstChild);
+}
+
 window.onload = function(){
   generateCode();
   addSection();
   updateDraftBanner();
+  checkEditMode();
 };
 
 
