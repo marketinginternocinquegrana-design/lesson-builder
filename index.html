@@ -627,7 +627,7 @@ function showEditBanner(title, code){
   var banner = document.createElement('div');
   banner.id = 'edit-mode-banner';
   banner.style.cssText = 'background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.08));border:1px solid rgba(201,168,76,.4);border-radius:10px;padding:.75rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem';
-  banner.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem"><i class="ti ti-pencil" style="font-size:18px;color:#c9a84c"></i><div><div style="font-size:13px;font-weight:700;color:#c9a84c">Modalità modifica</div><div style="font-size:12px;color:#888;margin-top:2px">Stai modificando: <strong style="color:#c9a84c">'+title+'</strong> ('+code+')</div></div></div><div style="font-size:11px;color:#888;background:rgba(255,255,255,.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1)">💡 Clicca <strong>Pubblica sull'app</strong> per salvare le modifiche</div>';
+  banner.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem"><i class="ti ti-pencil" style="font-size:18px;color:#c9a84c"></i><div><div style="font-size:13px;font-weight:700;color:#c9a84c">Modalità modifica</div><div style="font-size:12px;color:#888;margin-top:2px">Stai modificando: <strong style="color:#c9a84c">'+title+'</strong> ('+code+')</div></div></div><div style="font-size:11px;color:#888;background:rgba(255,255,255,.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.1)">💡 Clicca <strong>Pubblica sull&#39;app</strong> per salvare le modifiche</div>';
   var wrap = document.querySelector('.wrap');
   if(wrap) wrap.insertBefore(banner, wrap.firstChild);
 }
